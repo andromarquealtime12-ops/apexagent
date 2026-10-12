@@ -7,7 +7,7 @@ export function frameDiff(a: Uint8ClampedArray, b: Uint8ClampedArray, pixelThres
   let changed = 0;
   const n = a.length / 4;
   for (let i = 0; i < a.length; i += 4) {
-    const d = Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]);
+    const d = Math.abs(a[i]! - b[i]!) + Math.abs(a[i + 1]! - b[i + 1]!) + Math.abs(a[i + 2]! - b[i + 2]!);
     if (d / 3 > pixelThreshold) changed++;
   }
   return changed / n;

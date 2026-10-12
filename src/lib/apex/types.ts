@@ -67,8 +67,8 @@ export interface Mission extends MissionInput {
   progress: number;
   created_at: string;
   updated_at: string;
-  demo?: boolean;
-  history: { at: string; from: MissionStatus | null; to: MissionStatus; note?: string }[];
+  demo?: boolean | undefined;
+  history: { at: string; from: MissionStatus | null; to: MissionStatus; note?: string }[] | undefined;
 }
 
 export interface Source {
@@ -83,7 +83,7 @@ export interface Opportunity {
   title: string;
   summary: string;
   url: string;
-  stable_id?: string;
+  stable_id?: string | undefined;
   facts: string[];
   inferences: string[];
   hypotheses: string[];
@@ -94,7 +94,7 @@ export interface Opportunity {
   next_experiment: string;
   sources: Source[];
   criteria: Record<WeightKey, number>; // 0-10
-  demo?: boolean;
+  demo?: boolean | undefined;
   created_at: string;
 }
 
@@ -104,23 +104,23 @@ export interface Approval {
   action: string;
   target: string;
   impact: string;
-  cost?: string;
+  cost?: string | undefined;
   data: string;
   evidence: string[];
   choices: string[];
   recommendation: string;
   next_step: string;
-  decided_at?: string;
-  decision?: string;
+  decided_at?: string | undefined;
+  decision?: string | undefined;
   expires_at: string;
   created_at: string;
-  demo?: boolean;
+  demo?: boolean | undefined;
 }
 
 export interface HomeSession {
   id: string;
   started_at: string;
-  ended_at?: string;
+  ended_at?: string | undefined;
   capture_enabled: boolean;
 }
 
@@ -129,9 +129,9 @@ export interface HomeEvent {
   session_id: string;
   at: string;
   confidence: number;
-  capture_path?: string;
-  capture_data?: string; // local preview only until storage is connected
-  demo?: boolean;
+  capture_path?: string | undefined;
+  capture_data?: string | undefined; // local preview only until storage is connected
+  demo?: boolean | undefined;
 }
 
 export interface Alert {
@@ -141,8 +141,8 @@ export interface Alert {
   title: string;
   body: string;
   read: boolean;
-  link?: string;
-  demo?: boolean;
+  link?: string | undefined;
+  demo?: boolean | undefined;
 }
 
 export interface ChatMessage {

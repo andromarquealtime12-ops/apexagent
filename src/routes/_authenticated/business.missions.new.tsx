@@ -91,7 +91,7 @@ function NewMission() {
               </label>
             ))}
           </div>
-          {errors.weights && <p role="alert" className="mt-2 text-xs text-destructive">{errors.weights}</p>}
+          {errors["weights"] && <p role="alert" className="mt-2 text-xs text-destructive">{errors["weights"]}</p>}
           <Button type="button" variant="ghost" className="mt-2" onClick={() => setWeights({ ...DEFAULT_WEIGHTS })}>Rétablir les valeurs par défaut</Button>
         </Panel>
 

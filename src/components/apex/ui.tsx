@@ -47,7 +47,7 @@ export function ApprovalStatusPill({ status }: { status: ApprovalStatus }) {
   return <StatusPill tone={t} icon={i} label={l} />;
 }
 
-export function DemoTag({ show }: { show?: boolean }) {
+export function DemoTag({ show }: { show?: boolean | undefined }) {
   if (!show) return null;
   return <span className="eyebrow rounded border border-dashed border-warning/50 px-1.5 py-0.5 text-warning">Démonstration</span>;
 }

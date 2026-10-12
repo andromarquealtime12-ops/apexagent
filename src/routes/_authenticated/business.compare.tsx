@@ -53,7 +53,7 @@ function Compare() {
                 <tbody className="divide-y">
                   {WEIGHT_KEYS.map((k) => (
                     <tr key={k}>
-                      <td className="p-3">{WEIGHT_LABELS[k]} <span className="font-mono text-muted-foreground">({weightsOf(chosen[0].mission_id)[k]})</span></td>
+                      <td className="p-3">{WEIGHT_LABELS[k]} <span className="font-mono text-muted-foreground">({weightsOf(chosen[0]!.mission_id)[k]})</span></td>
                       {chosen.map((o) => {
                         const b = scoreOpportunity(o.criteria, weightsOf(o.mission_id)).breakdown.find((x) => x.key === k)!;
                         return <td key={o.id} className="p-3 font-mono">{b.value}/10 → {b.points.toFixed(1)}</td>;
