@@ -15,11 +15,11 @@ export function domainOf(url: string): string {
   }
 }
 
-export function canonicalKey(o: { title: string; url: string; stable_id?: string }): string {
+export function canonicalKey(o: { title: string; url: string; stable_id?: string | undefined }): string {
   return [normalizeTitle(o.title), domainOf(o.url), o.stable_id ?? ""].join("|");
 }
 
-export function dedupe<T extends { title: string; url: string; stable_id?: string }>(items: T[]): T[] {
+export function dedupe<T extends { title: string; url: string; stable_id?: string | undefined }>(items: T[]): T[] {
   const seen = new Set<string>();
   return items.filter((i) => {
     const k = canonicalKey(i);

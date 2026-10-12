@@ -44,7 +44,7 @@ function AuthPage() {
             e.preventDefault();
             const fd = new FormData(e.currentTarget);
             const r = schema.safeParse({ email: fd.get("email"), password: fd.get("password") });
-            if (!r.success) return setErr(r.error.issues[0].message);
+            if (!r.success) return setErr(r.error.issues[0]?.message ?? "Erreur");
             setErr(null);
             setBusy(true);
             actions.signIn(r.data.email);

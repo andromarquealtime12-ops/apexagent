@@ -68,7 +68,7 @@ export interface Mission extends MissionInput {
   created_at: string;
   updated_at: string;
   demo?: boolean | undefined;
-  history: { at: string; from: MissionStatus | null; to: MissionStatus; note?: string }[] | undefined;
+  history: { at: string; from: MissionStatus | null; to: MissionStatus; note?: string | undefined }[];
 }
 
 export interface Source {

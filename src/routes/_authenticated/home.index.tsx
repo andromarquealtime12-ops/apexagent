@@ -95,11 +95,11 @@ function HomeMonitor() {
         </div>
         <div>
           <label className="mb-2 flex justify-between text-sm" id="sens"><span>Sensibilité</span><span className="font-mono">{prefs.sensitivity}</span></label>
-          <Slider aria-labelledby="sens" min={1} max={100} value={[prefs.sensitivity]} onValueChange={([v]) => actions.setPrefs({ sensitivity: v })} />
+          <Slider aria-labelledby="sens" min={1} max={100} value={[prefs.sensitivity]} onValueChange={([v]) => actions.setPrefs({ sensitivity: v ?? 40 })} />
         </div>
         <div>
           <label className="mb-2 flex justify-between text-sm" id="cd"><span>Délai entre deux événements</span><span className="font-mono">{prefs.cooldown_s} s</span></label>
-          <Slider aria-labelledby="cd" min={3} max={120} value={[prefs.cooldown_s]} onValueChange={([v]) => actions.setPrefs({ cooldown_s: v })} />
+          <Slider aria-labelledby="cd" min={3} max={120} value={[prefs.cooldown_s]} onValueChange={([v]) => actions.setPrefs({ cooldown_s: v ?? 10 })} />
         </div>
         <p className="text-xs text-muted-foreground">La vidéo reste sur votre appareil. Pas d'audio, pas de reconnaissance de personnes.</p>
       </Panel>
