@@ -12,6 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedBusinessCompareRouteImport } from './routes/_authenticated/business.compare'
+import { Route as AuthenticatedBusinessHistoryRouteImport } from './routes/_authenticated/business.history'
+import { Route as AuthenticatedBusinessMissionsIndexRouteImport } from './routes/_authenticated/business.missions.index'
+import { Route as AuthenticatedBusinessMissionsIdRouteImport } from './routes/_authenticated/business.missions.$id'
+import { Route as AuthenticatedBusinessMissionsNewRouteImport } from './routes/_authenticated/business.missions.new'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -27,27 +32,95 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBusinessCompareRoute =
+  AuthenticatedBusinessCompareRouteImport.update({
+    id: '/business/compare',
+    path: '/business/compare',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBusinessHistoryRoute =
+  AuthenticatedBusinessHistoryRouteImport.update({
+    id: '/business/history',
+    path: '/business/history',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBusinessMissionsIndexRoute =
+  AuthenticatedBusinessMissionsIndexRouteImport.update({
+    id: '/business/missions/',
+    path: '/business/missions/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBusinessMissionsIdRoute =
+  AuthenticatedBusinessMissionsIdRouteImport.update({
+    id: '/business/missions/$id',
+    path: '/business/missions/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBusinessMissionsNewRoute =
+  AuthenticatedBusinessMissionsNewRouteImport.update({
+    id: '/business/missions/new',
+    path: '/business/missions/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/business/compare': typeof AuthenticatedBusinessCompareRoute
+  '/business/history': typeof AuthenticatedBusinessHistoryRoute
+  '/business/missions/$id': typeof AuthenticatedBusinessMissionsIdRoute
+  '/business/missions/new': typeof AuthenticatedBusinessMissionsNewRoute
+  '/business/missions/': typeof AuthenticatedBusinessMissionsIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/': typeof AuthenticatedIndexRoute
+  '/business/compare': typeof AuthenticatedBusinessCompareRoute
+  '/business/history': typeof AuthenticatedBusinessHistoryRoute
+  '/business/missions/$id': typeof AuthenticatedBusinessMissionsIdRoute
+  '/business/missions/new': typeof AuthenticatedBusinessMissionsNewRoute
+  '/business/missions': typeof AuthenticatedBusinessMissionsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/business/compare': typeof AuthenticatedBusinessCompareRoute
+  '/_authenticated/business/history': typeof AuthenticatedBusinessHistoryRoute
+  '/_authenticated/business/missions/$id': typeof AuthenticatedBusinessMissionsIdRoute
+  '/_authenticated/business/missions/new': typeof AuthenticatedBusinessMissionsNewRoute
+  '/_authenticated/business/missions/': typeof AuthenticatedBusinessMissionsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/business/compare'
+    | '/business/history'
+    | '/business/missions/$id'
+    | '/business/missions/new'
+    | '/business/missions/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth' | '/'
-  id: '__root__' | '/_authenticated' | '/auth' | '/_authenticated/'
+  to:
+    | '/auth'
+    | '/'
+    | '/business/compare'
+    | '/business/history'
+    | '/business/missions/$id'
+    | '/business/missions/new'
+    | '/business/missions'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/'
+    | '/_authenticated/business/compare'
+    | '/_authenticated/business/history'
+    | '/_authenticated/business/missions/$id'
+    | '/_authenticated/business/missions/new'
+    | '/_authenticated/business/missions/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -78,15 +151,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/business/compare': {
+      id: '/_authenticated/business/compare'
+      path: '/business/compare'
+      fullPath: '/business/compare'
+      preLoaderRoute: typeof AuthenticatedBusinessCompareRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/business/history': {
+      id: '/_authenticated/business/history'
+      path: '/business/history'
+      fullPath: '/business/history'
+      preLoaderRoute: typeof AuthenticatedBusinessHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/business/missions/': {
+      id: '/_authenticated/business/missions/'
+      path: '/business/missions'
+      fullPath: '/business/missions/'
+      preLoaderRoute: typeof AuthenticatedBusinessMissionsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/business/missions/$id': {
+      id: '/_authenticated/business/missions/$id'
+      path: '/business/missions/$id'
+      fullPath: '/business/missions/$id'
+      preLoaderRoute: typeof AuthenticatedBusinessMissionsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/business/missions/new': {
+      id: '/_authenticated/business/missions/new'
+      path: '/business/missions/new'
+      fullPath: '/business/missions/new'
+      preLoaderRoute: typeof AuthenticatedBusinessMissionsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedBusinessCompareRoute: typeof AuthenticatedBusinessCompareRoute
+  AuthenticatedBusinessHistoryRoute: typeof AuthenticatedBusinessHistoryRoute
+  AuthenticatedBusinessMissionsIdRoute: typeof AuthenticatedBusinessMissionsIdRoute
+  AuthenticatedBusinessMissionsNewRoute: typeof AuthenticatedBusinessMissionsNewRoute
+  AuthenticatedBusinessMissionsIndexRoute: typeof AuthenticatedBusinessMissionsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedBusinessCompareRoute: AuthenticatedBusinessCompareRoute,
+  AuthenticatedBusinessHistoryRoute: AuthenticatedBusinessHistoryRoute,
+  AuthenticatedBusinessMissionsIdRoute: AuthenticatedBusinessMissionsIdRoute,
+  AuthenticatedBusinessMissionsNewRoute: AuthenticatedBusinessMissionsNewRoute,
+  AuthenticatedBusinessMissionsIndexRoute:
+    AuthenticatedBusinessMissionsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

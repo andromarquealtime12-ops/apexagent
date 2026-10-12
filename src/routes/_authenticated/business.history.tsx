@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { History } from "lucide-react";
 import { EmptyState, MissionStatusPill, PageHeader } from "@/components/apex/ui";
-import { BusinessTabs } from "./business.missions.index";
+import { BusinessTabs } from "@/components/apex/BusinessTabs";
 import { useApex } from "@/lib/apex/store";
 import { fmtDate } from "@/lib/apex/format";
 

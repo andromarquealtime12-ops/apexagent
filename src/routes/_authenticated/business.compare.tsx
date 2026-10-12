@@ -3,7 +3,7 @@ import { useState } from "react";
 import { GitCompare } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState, PageHeader, Panel, DemoTag } from "@/components/apex/ui";
-import { BusinessTabs } from "./business.missions.index";
+import { BusinessTabs } from "@/components/apex/BusinessTabs";
 import { useApex } from "@/lib/apex/store";
 import { DEFAULT_WEIGHTS, WEIGHT_KEYS, WEIGHT_LABELS } from "@/lib/apex/types";
 import { scoreOpportunity } from "@/lib/apex/scoring";

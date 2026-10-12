@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Briefcase, GitCompare, History, Plus } from "lucide-react";
+import { Briefcase, Plus } from "lucide-react";
+import { BusinessTabs } from "@/components/apex/BusinessTabs";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { EmptyState, MissionStatusPill, PageHeader, DemoTag } from "@/components/apex/ui";
@@ -10,17 +11,6 @@ export const Route = createFileRoute("/_authenticated/business/missions/")({
   head: () => ({ meta: [{ title: "Missions — APEX" }, { name: "description", content: "Missions de recherche d'opportunités." }, { property: "og:title", content: "Missions — APEX" }, { property: "og:description", content: "Missions de recherche d'opportunités." }] }),
   component: Missions,
 });
-
-export function BusinessTabs() {
-  const cls = "tap inline-flex items-center gap-2 rounded-md px-3 text-sm text-muted-foreground hover:bg-muted data-[status=active]:bg-accent data-[status=active]:text-accent-foreground";
-  return (
-    <nav aria-label="Business" className="mb-5 flex gap-1 overflow-x-auto">
-      <Link to="/business/missions" activeOptions={{ exact: true }} className={cls}><Briefcase className="size-4" />Missions</Link>
-      <Link to="/business/compare" className={cls}><GitCompare className="size-4" />Comparer</Link>
-      <Link to="/business/history" className={cls}><History className="size-4" />Historique</Link>
-    </nav>
-  );
-}
 
 function Missions() {
   const missions = useApex((s) => s.missions);
