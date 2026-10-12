@@ -76,5 +76,5 @@ export function EmptyState({ icon: Icon, title, body, action }: { icon: LucideIc
 }
 
 export function Panel({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn("rounded-lg border bg-card p-4", className)}>{children}</section>;
+  return <section className={cn("min-w-0 rounded-lg border bg-card p-4", className)}>{children}</section>;
 }

@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-screen min-w-0 flex-col">
         {!online && (
           <div role="status" className="flex items-center justify-center gap-2 bg-warning px-4 py-2 text-sm text-warning-foreground">
             <WifiOff className="size-4" aria-hidden /> Hors ligne — les données affichées peuvent être anciennes.
