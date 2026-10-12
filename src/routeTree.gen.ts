@@ -12,11 +12,18 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
+import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
+import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedBusinessCompareRouteImport } from './routes/_authenticated/business.compare'
 import { Route as AuthenticatedBusinessHistoryRouteImport } from './routes/_authenticated/business.history'
+import { Route as AuthenticatedHomeIndexRouteImport } from './routes/_authenticated/home.index'
 import { Route as AuthenticatedBusinessMissionsIndexRouteImport } from './routes/_authenticated/business.missions.index'
 import { Route as AuthenticatedBusinessMissionsIdRouteImport } from './routes/_authenticated/business.missions.$id'
 import { Route as AuthenticatedBusinessMissionsNewRouteImport } from './routes/_authenticated/business.missions.new'
+import { Route as AuthenticatedHomeEventsIndexRouteImport } from './routes/_authenticated/home.events.index'
+import { Route as AuthenticatedHomeEventsIdRouteImport } from './routes/_authenticated/home.events.$id'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -32,6 +39,26 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAlertsRoute = AuthenticatedAlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
+  id: '/approvals',
+  path: '/approvals',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
+  id: '/assistant',
+  path: '/assistant',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBusinessCompareRoute =
   AuthenticatedBusinessCompareRouteImport.update({
     id: '/business/compare',
@@ -44,6 +71,11 @@ const AuthenticatedBusinessHistoryRoute =
     path: '/business/history',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHomeIndexRoute = AuthenticatedHomeIndexRouteImport.update({
+  id: '/home/',
+  path: '/home/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedBusinessMissionsIndexRoute =
   AuthenticatedBusinessMissionsIndexRouteImport.update({
     id: '/business/missions/',
@@ -62,65 +94,119 @@ const AuthenticatedBusinessMissionsNewRoute =
     path: '/business/missions/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedHomeEventsIndexRoute =
+  AuthenticatedHomeEventsIndexRouteImport.update({
+    id: '/home/events/',
+    path: '/home/events/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedHomeEventsIdRoute =
+  AuthenticatedHomeEventsIdRouteImport.update({
+    id: '/home/events/$id',
+    path: '/home/events/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/alerts': typeof AuthenticatedAlertsRoute
+  '/approvals': typeof AuthenticatedApprovalsRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/business/compare': typeof AuthenticatedBusinessCompareRoute
   '/business/history': typeof AuthenticatedBusinessHistoryRoute
+  '/home/': typeof AuthenticatedHomeIndexRoute
   '/business/missions/$id': typeof AuthenticatedBusinessMissionsIdRoute
   '/business/missions/new': typeof AuthenticatedBusinessMissionsNewRoute
+  '/home/events/$id': typeof AuthenticatedHomeEventsIdRoute
   '/business/missions/': typeof AuthenticatedBusinessMissionsIndexRoute
+  '/home/events/': typeof AuthenticatedHomeEventsIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/alerts': typeof AuthenticatedAlertsRoute
+  '/approvals': typeof AuthenticatedApprovalsRoute
+  '/assistant': typeof AuthenticatedAssistantRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/': typeof AuthenticatedIndexRoute
   '/business/compare': typeof AuthenticatedBusinessCompareRoute
   '/business/history': typeof AuthenticatedBusinessHistoryRoute
+  '/home': typeof AuthenticatedHomeIndexRoute
   '/business/missions/$id': typeof AuthenticatedBusinessMissionsIdRoute
   '/business/missions/new': typeof AuthenticatedBusinessMissionsNewRoute
+  '/home/events/$id': typeof AuthenticatedHomeEventsIdRoute
   '/business/missions': typeof AuthenticatedBusinessMissionsIndexRoute
+  '/home/events': typeof AuthenticatedHomeEventsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
+  '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
+  '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/business/compare': typeof AuthenticatedBusinessCompareRoute
   '/_authenticated/business/history': typeof AuthenticatedBusinessHistoryRoute
+  '/_authenticated/home/': typeof AuthenticatedHomeIndexRoute
   '/_authenticated/business/missions/$id': typeof AuthenticatedBusinessMissionsIdRoute
   '/_authenticated/business/missions/new': typeof AuthenticatedBusinessMissionsNewRoute
+  '/_authenticated/home/events/$id': typeof AuthenticatedHomeEventsIdRoute
   '/_authenticated/business/missions/': typeof AuthenticatedBusinessMissionsIndexRoute
+  '/_authenticated/home/events/': typeof AuthenticatedHomeEventsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/alerts'
+    | '/approvals'
+    | '/assistant'
+    | '/settings'
     | '/business/compare'
     | '/business/history'
+    | '/home/'
     | '/business/missions/$id'
     | '/business/missions/new'
+    | '/home/events/$id'
     | '/business/missions/'
+    | '/home/events/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/alerts'
+    | '/approvals'
+    | '/assistant'
+    | '/settings'
     | '/'
     | '/business/compare'
     | '/business/history'
+    | '/home'
     | '/business/missions/$id'
     | '/business/missions/new'
+    | '/home/events/$id'
     | '/business/missions'
+    | '/home/events'
   id:
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/alerts'
+    | '/_authenticated/approvals'
+    | '/_authenticated/assistant'
+    | '/_authenticated/settings'
     | '/_authenticated/'
     | '/_authenticated/business/compare'
     | '/_authenticated/business/history'
+    | '/_authenticated/home/'
     | '/_authenticated/business/missions/$id'
     | '/_authenticated/business/missions/new'
+    | '/_authenticated/home/events/$id'
     | '/_authenticated/business/missions/'
+    | '/_authenticated/home/events/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -151,6 +237,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/alerts': {
+      id: '/_authenticated/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AuthenticatedAlertsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/approvals': {
+      id: '/_authenticated/approvals'
+      path: '/approvals'
+      fullPath: '/approvals'
+      preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assistant': {
+      id: '/_authenticated/assistant'
+      path: '/assistant'
+      fullPath: '/assistant'
+      preLoaderRoute: typeof AuthenticatedAssistantRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/business/compare': {
       id: '/_authenticated/business/compare'
       path: '/business/compare'
@@ -163,6 +277,13 @@ declare module '@tanstack/react-router' {
       path: '/business/history'
       fullPath: '/business/history'
       preLoaderRoute: typeof AuthenticatedBusinessHistoryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home/': {
+      id: '/_authenticated/home/'
+      path: '/home'
+      fullPath: '/home/'
+      preLoaderRoute: typeof AuthenticatedHomeIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/business/missions/': {
@@ -186,26 +307,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBusinessMissionsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/home/events/': {
+      id: '/_authenticated/home/events/'
+      path: '/home/events'
+      fullPath: '/home/events/'
+      preLoaderRoute: typeof AuthenticatedHomeEventsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/home/events/$id': {
+      id: '/_authenticated/home/events/$id'
+      path: '/home/events/$id'
+      fullPath: '/home/events/$id'
+      preLoaderRoute: typeof AuthenticatedHomeEventsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
+  AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
+  AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedBusinessCompareRoute: typeof AuthenticatedBusinessCompareRoute
   AuthenticatedBusinessHistoryRoute: typeof AuthenticatedBusinessHistoryRoute
+  AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
   AuthenticatedBusinessMissionsIdRoute: typeof AuthenticatedBusinessMissionsIdRoute
   AuthenticatedBusinessMissionsNewRoute: typeof AuthenticatedBusinessMissionsNewRoute
+  AuthenticatedHomeEventsIdRoute: typeof AuthenticatedHomeEventsIdRoute
   AuthenticatedBusinessMissionsIndexRoute: typeof AuthenticatedBusinessMissionsIndexRoute
+  AuthenticatedHomeEventsIndexRoute: typeof AuthenticatedHomeEventsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
+  AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
+  AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedBusinessCompareRoute: AuthenticatedBusinessCompareRoute,
   AuthenticatedBusinessHistoryRoute: AuthenticatedBusinessHistoryRoute,
+  AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,
   AuthenticatedBusinessMissionsIdRoute: AuthenticatedBusinessMissionsIdRoute,
   AuthenticatedBusinessMissionsNewRoute: AuthenticatedBusinessMissionsNewRoute,
+  AuthenticatedHomeEventsIdRoute: AuthenticatedHomeEventsIdRoute,
   AuthenticatedBusinessMissionsIndexRoute:
     AuthenticatedBusinessMissionsIndexRoute,
+  AuthenticatedHomeEventsIndexRoute: AuthenticatedHomeEventsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

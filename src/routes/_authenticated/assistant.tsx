@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/assistant")({
 
 function Assistant() {
   const messages = useApex((s) => s.messages);
-  const ctx = useApex((s) => ({ m: s.missions.length, a: s.approvals.filter((x) => x.status === "pending").length }));
+  const ctx = { m: useApex((s) => s.missions.length), a: useApex((s) => s.approvals.filter((x) => x.status === "pending").length) };
   const [text, setText] = useState("");
 
   const send = () => {
