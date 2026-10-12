@@ -8,3 +8,8 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+## APEX
+- All app data goes through `src/lib/apex/store.ts` actions; it is a local stand-in to be swapped for server functions + RLS tables once the database is connected, so UI code never talks to storage directly.
+- Domain rules (scoring, dedupe, mission transitions) live as pure functions in `src/lib/apex/` with tests in `src/test/apex.test.ts`, so server code can reuse them.
+- Camera starts only from an explicit user click in `useMotionMonitor`; never auto-start, never request audio.
