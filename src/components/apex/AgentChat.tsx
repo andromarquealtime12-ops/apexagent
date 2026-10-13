@@ -18,7 +18,7 @@ function VoicePanel() {
   const onEvent = (e: LiveEvent) => {
     const ev = e as LiveEvent & { delta?: string };
     if (e.type === "session.input_transcript.delta" || e.type === "session.output_transcript.delta") {
-      const role = e.type === "session.input_transcript.delta" ? "user" : "assistant";
+      const role: Caption["role"] = e.type === "session.input_transcript.delta" ? "user" : "assistant";
       const delta = ev.delta ?? "";
       setCaptions((c) => {
         const last = c[c.length - 1];
