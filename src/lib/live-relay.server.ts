@@ -1,7 +1,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { stepCountIs, streamText, tool, type ModelMessage } from "ai";
+import { stepCountIs, streamText, type ModelMessage } from "ai";
 import process from "node:process";
-import { z } from "zod";
+import { agentTools, userDb, verifyToken, type UserDb } from "./apex-agent.server";
 
 export type LiveConfig = {
   baseURL: string;
@@ -12,7 +12,7 @@ export type LiveConfig = {
 };
 
 // Fill from co-loaded knowledge: the gateway URL, the Live model and the resolved chat model.
-const liveSettings = { baseURL: "", liveModel: "", backendModel: "" };
+const liveSettings = { baseURL: "https://ai.gateway.lovable.dev", liveModel: "openai/gpt-live-1", backendModel: "openai/gpt-6-astra" };
 
 export type LiveSocket = {
   readonly readyState: number;
@@ -111,35 +111,15 @@ export function handleLiveRequest(request: Request): Response {
   return new Response(null, response);
 }
 
-const conversationInstructions = `You are Mira, a calm learning companion.
-Speak naturally in brief replies. Ask a focused question when details are unclear.
-Backchannel policy: Use moderate listening sounds without taking over.
-Interruption policy: Stop your answer and listen when the user interrupts.
+const conversationInstructions = `Tu es l'agent vocal APEX Business. Tu parles uniquement en français, avec un ton calme et professionnel, en phrases courtes.
+Ton rôle : aider l'utilisateur à préparer et piloter ses missions de recherche d'opportunités.
+Si la demande n'est pas claire, demande quelle mission il veut que tu prépares.
+Backchannel policy: Utilise des petits signes d'écoute modérés sans prendre la parole.
+Interruption policy: Arrête ta réponse et écoute quand l'utilisateur t'interrompt.
 Delegation policy:
-Backend tools: Reason through questions and plan study sessions across days.
-Delegate to the backend when: The user wants a study schedule or careful reasoning,
-or a correction changes a question already being worked on.
-Do not delegate to the backend when: Greeting, clarifying a question, or repeating
-a still-current answer. Wait for the backend result before presenting its answer.`;
-
-const studyScheduleInput = z
-  .object({
-    total_minutes: z.number().int().min(1).max(10_080),
-    days: z.number().int().min(1).max(30),
-  })
-  .strict();
-
-function planStudySchedule(args: z.infer<typeof studyScheduleInput>) {
-  const daily = Math.floor(args.total_minutes / args.days);
-  return {
-    total_minutes: args.total_minutes,
-    days: args.days,
-    sessions: Array.from({ length: args.days }, (_, index) => ({
-      day: index + 1,
-      minutes: daily + (index < args.total_minutes % args.days ? 1 : 0),
-    })),
-  };
-}
+Backend tools: Lister les missions, lister les autorisations en attente, créer une mission en brouillon, lancer une mission.
+Delegate to the backend when: L'utilisateur veut connaître ses missions ou autorisations, créer une mission, la lancer, ou corrige une demande en cours.
+Do not delegate to the backend when: Salutations, clarifications, ou répétition d'une réponse encore valable. Attends le résultat du backend avant d'annoncer une action terminée.`;
 
 function isListeningSound(text: string) {
   const normalized = text.toLowerCase().replace(/[\s\p{Pd}]/gu, "");
@@ -152,7 +132,8 @@ async function answerQuestion(
   correlation: { runID: string; sessionID: string | undefined; delegationID: string },
   signal: AbortSignal,
   consumeInput: () => void,
-  onPlan: (plan: ReturnType<typeof planStudySchedule>) => void,
+  db: UserDb,
+  onChange: () => void,
 ) {
   signal.throwIfAborted();
   const provider = createOpenAI({
@@ -200,26 +181,13 @@ async function answerQuestion(
       },
     },
     system:
-      "Help a spoken learning companion answer the latest user question. " +
-      "Transcripts may be incomplete or corrected. Use the latest correction. " +
-      "Continue from completed tool results; do not repeat completed actions. " +
-      "Return verified facts and useful next steps in at most 150 words. " +
-      "To display a study schedule for the current request, call plan_study_schedule with its total minutes and days. " +
-      "Ask for missing details instead of guessing. The tool only calculates a draft plan; " +
-      "it does not save calendar events. You have no other tools.",
+      "Tu aides un agent vocal APEX à répondre à la dernière demande de l'utilisateur, en français. " +
+      "Les transcriptions peuvent être incomplètes ou corrigées : utilise la dernière correction. " +
+      "Ne répète pas une action déjà faite. Avant toute création ou lancement, exige une confirmation orale explicite " +
+      "du résumé exact ; sans elle, appelle l'outil avec user_confirmed=false ou demande la confirmation. " +
+      "Réponds en 80 mots maximum, uniquement avec des faits vérifiés par les outils.",
     messages,
-    tools: {
-      plan_study_schedule: tool({
-        description: "Distribute a total study time evenly across days and return a draft schedule.",
-        inputSchema: studyScheduleInput,
-        execute: async (args) => {
-          signal.throwIfAborted();
-          const plan = planStudySchedule(args);
-          onPlan(plan);
-          return plan;
-        },
-      }),
-    },
+    tools: agentTools(db, onChange),
   });
   let completed = false;
   let stepCompleted = false;
@@ -283,10 +251,8 @@ export function bindLiveConnection(
   let finished = false;
   let revision = 0;
   let task: AbortController | undefined;
-  const pendingDelegations: Array<{
-    event: ProviderEvent;
-    plan?: ReturnType<typeof planStudySchedule>;
-  }> = [];
+  const pendingDelegations: Array<{ event: ProviderEvent }> = [];
+  let db: UserDb | undefined;
   let completedDelegation: (typeof pendingDelegations)[number] | undefined;
   const backendMessages: ModelMessage[] = [];
   let transcriptCursor = 0;
@@ -406,7 +372,7 @@ export function bindLiveConnection(
     restartTimer = setTimeout(() => void runDelegation(), 300);
   }
 
-  function deliverResult(delegationID: string, answer: string, plan?: ReturnType<typeof planStudySchedule>) {
+  function deliverResult(delegationID: string, answer: string) {
     if (closing) return;
     if (gateway?.readyState !== 1) return stop();
     try {
@@ -420,7 +386,6 @@ export function bindLiveConnection(
           }),
         );
       }
-      if (plan) emit({ type: "app.study_schedule.plan", delegation_id: delegationID, plan });
       completedDelegation = pendingDelegations.shift();
     } catch {
       stop();
@@ -431,7 +396,7 @@ export function bindLiveConnection(
     const pending = pendingDelegations[0];
     const event = pending?.event;
     const id = event?.delegation?.id;
-    if (!pending || !event || !id || closing || task) return;
+    if (!pending || !event || !id || closing || task || !db) return;
     if (!transcripts.some(({ role, text }) => role === "user" && text.trim())) return;
     const controller = new AbortController();
     task = controller;
@@ -444,18 +409,16 @@ export function bindLiveConnection(
         controller.signal,
         () => {
           const updates = transcripts.slice(transcriptCursor);
-          if (updates.some(({ role, listeningSound }) => role === "user" && !listeningSound)) delete pending.plan;
           backendMessages.push(...updates.map(({ role, text }) => ({ role, content: text })));
           transcriptCursor = transcripts.length;
           taskRevision = revision;
         },
-        (plan) => {
-          pending.plan = plan;
-        },
+        db,
+        () => emit({ type: "app.data.changed" }),
       );
       if (closing || controller.signal.aborted) return;
       if (taskRevision !== revision) return;
-      deliverResult(id, answer.trim(), pending.plan);
+      deliverResult(id, answer.trim());
     } catch {
       if (closing || controller.signal.aborted) return;
       backendMessages.push({
@@ -464,7 +427,7 @@ export function bindLiveConnection(
           "The backend attempt failed. Completed tool results remain valid; verify uncertain external actions before any retry.",
       });
       if (taskRevision !== revision) return;
-      deliverResult(id, "The backend could not finish the answer. Ask whether the user wants to try again.");
+      deliverResult(id, "Le service n'a pas pu terminer. Demande à l'utilisateur s'il veut réessayer.");
     } finally {
       if (task === controller) task = undefined;
       scheduleDelegation();
@@ -563,7 +526,11 @@ export function bindLiveConnection(
     }
   }
 
-  async function startSession(sdp: string) {
+  async function startSession(sdp: string, token: string) {
+    if (closing || browser.readyState !== 1) return;
+    const userId = await verifyToken(token);
+    if (!userId) throw new Error("Session expirée : reconnectez-vous.");
+    db = userDb(token);
     if (closing || browser.readyState !== 1) return;
     clearTimeout(startTimer);
     startupTimer = setTimeout(() => {
@@ -616,7 +583,7 @@ export function bindLiveConnection(
         }
         starting = true;
         execution.waitUntil(
-          startSession(event.sdp).catch((error) => {
+          startSession(event.sdp, typeof event.token === "string" ? event.token : "").catch((error) => {
             if (!closing)
               emit({
                 type: "app.error",
