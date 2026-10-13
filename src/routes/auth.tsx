@@ -11,7 +11,7 @@ import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>) => ({ next: oauthReturnPath(s.next) }),
+  validateSearch: (s: Record<string, unknown>) => ({ next: typeof s["next"] === "string" ? oauthReturnPath(s["next"]) : undefined }),
   head: () => ({
     meta: [
       { title: "Connexion — APEX" },
@@ -37,7 +37,7 @@ const MESSAGES: Record<string, string> = {
 
 function AuthPage() {
   const navigate = useNavigate();
-  const { next } = Route.useSearch();
+  const next = Route.useSearch().next ?? "/";
   const go = () => (next !== "/" ? window.location.assign(next) : navigate({ to: "/", replace: true }));
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [err, setErr] = useState<string | null>(null);
