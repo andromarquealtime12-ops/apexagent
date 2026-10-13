@@ -11,7 +11,7 @@ import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (s: Record<string, unknown>) => ({ next: typeof s["next"] === "string" ? oauthReturnPath(s["next"]) : undefined }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } => ({ next: typeof s["next"] === "string" ? oauthReturnPath(s["next"]) : undefined }),
   head: () => ({
     meta: [
       { title: "Connexion — APEX" },
