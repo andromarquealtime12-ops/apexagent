@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { Bell, Briefcase, Home, LayoutDashboard, LogOut, MessageSquare, Settings, ShieldCheck, WifiOff } from "lucide-react";
+import { MapPin, Bell, Briefcase, Home, LayoutDashboard, LogOut, MessageSquare, Settings, ShieldCheck, WifiOff } from "lucide-react";
 import { actions, useApex } from "@/lib/apex/store";
 
 const PRIMARY = [
@@ -12,7 +12,8 @@ const PRIMARY = [
 ] as const;
 const EXTRA = [
   { to: "/approvals", label: "Action requise", icon: ShieldCheck },
-  { to: "/assistant", label: "Assistant", icon: MessageSquare },
+  { to: "/business/assistant", label: "Agent", icon: MessageSquare },
+  { to: "/devices", label: "Appareils", icon: MapPin },
 ] as const;
 
 function useOnline() {

@@ -95,7 +95,7 @@ export function AgentChat() {
     if (!t || busy) return;
     setText("");
     setBusy(true);
-    actions.addLocalAssistantNote("");
+    actions.appendMessages([{ id: `tmp-${Date.now()}`, role: "user", content: t, created_at: new Date().toISOString() }]);
     try {
       const r = await send({ data: { content: t } });
       await syncAll();
