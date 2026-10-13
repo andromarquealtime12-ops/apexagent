@@ -2,6 +2,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
 import { MapPin, Bell, Briefcase, Home, LayoutDashboard, LogOut, MessageSquare, Settings, ShieldCheck, WifiOff } from "lucide-react";
 import { actions, useApex } from "@/lib/apex/store";
+import { useDevicePresence } from "@/hooks/use-device-presence";
 
 const PRIMARY = [
   { to: "/", label: "Accueil", icon: LayoutDashboard, exact: true },
@@ -38,6 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const email = useApex((s) => s.session?.email);
   const online = useOnline();
   const navigate = useNavigate();
+  useDevicePresence();
 
 
   const badge = (to: string) => (to === "/alerts" ? unread : to === "/approvals" ? pending : 0);
