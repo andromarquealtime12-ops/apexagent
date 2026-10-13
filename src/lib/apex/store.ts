@@ -1,14 +1,16 @@
 /**
- * Local data layer used until the database is connected.
- * Every mutation here maps 1:1 to a future server function / RLS-protected table.
+ * APEX data layer: in-memory state synced with the database (RLS-protected, per user).
+ * UI reads via useApex(selector) and writes only through `actions`.
  */
 import { useSyncExternalStore } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import type { Alert, Approval, ChatMessage, HomeEvent, HomeSession, Mission, MissionInput, Opportunity, Preferences } from "./types";
-import { nextStatus, type MissionAction } from "./transitions";
-import { dedupe } from "./dedupe";
+import type { MissionAction } from "./transitions";
 
 export interface ApexState {
-  session: { email: string } | null;
+  session: { email: string; userId: string } | null;
+  ready: boolean;
   missions: Mission[];
   opportunities: Opportunity[];
   approvals: Approval[];
@@ -19,7 +21,6 @@ export interface ApexState {
   prefs: Preferences;
 }
 
-const KEY = "apex-state-v1";
 export const DEFAULT_PREFS: Preferences = {
   display_name: "",
   notifications_internal: true,
@@ -32,6 +33,7 @@ export const DEFAULT_PREFS: Preferences = {
 
 const empty = (): ApexState => ({
   session: null,
+  ready: false,
   missions: [],
   opportunities: [],
   approvals: [],
@@ -43,36 +45,14 @@ const empty = (): ApexState => ({
 });
 
 let state: ApexState = empty();
-let loaded = false;
 const listeners = new Set<() => void>();
-
-function load() {
-  if (loaded || typeof window === "undefined") return;
-  loaded = true;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) state = { ...empty(), ...JSON.parse(raw) };
-  } catch {
-    /* ignore corrupt storage */
-  }
-}
-
 function set(fn: (s: ApexState) => ApexState) {
-  load();
   state = fn(state);
-  try {
-    localStorage.setItem(KEY, JSON.stringify(state));
-  } catch {
-    /* quota */
-  }
   listeners.forEach((l) => l());
 }
-
 export function getState() {
-  load();
   return state;
 }
-
 const serverSnap = empty();
 export function useApex<T>(sel: (s: ApexState) => T): T {
   return useSyncExternalStore(
@@ -80,96 +60,213 @@ export function useApex<T>(sel: (s: ApexState) => T): T {
       listeners.add(l);
       return () => listeners.delete(l);
     },
-    () => sel(getState()),
+    () => sel(state),
     () => sel(serverSnap),
   );
 }
 
 export const uid = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
+const ERR: Record<string, string> = {
+  INVALID_TRANSITION: "Transition non autorisée.",
+  APPROVAL_NOT_PENDING: "Décision déjà prise.",
+  APPROVAL_EXPIRED: "Cette autorisation a expiré.",
+};
+function fail(e: unknown): never {
+  const msg = e && typeof e === "object" && "message" in e ? String((e as { message: string }).message) : "Erreur";
+  const key = Object.keys(ERR).find((k) => msg.includes(k));
+  toast.error(key ? ERR[key] : "Synchronisation impossible. Réessayez.");
+  throw new Error(key ?? "SYNC_FAILED");
+}
+
+/* ---------- row mappers ---------- */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = any;
+const toMission = (r: Row): Mission => ({ ...r, budget_min: Number(r.budget_min), budget_max: Number(r.budget_max), history: r.history ?? [] }) as Mission;
+const toOpp = (r: Row): Opportunity => ({ ...r, confidence: Number(r.confidence) }) as Opportunity;
+const toApproval = (r: Row): Approval => ({ ...r, cost: r.cost ?? undefined, decision: r.decision ?? undefined, decided_at: r.decided_at ?? undefined }) as Approval;
+const toEvent = (r: Row): HomeEvent => ({ id: r.id, session_id: r.session_id, at: r.occurred_at, confidence: Number(r.confidence), capture_path: r.capture_path ?? undefined });
+const toAlert = (r: Row): Alert => ({ id: r.id, at: r.created_at, kind: r.kind, title: r.title, body: r.body, read: r.read, link: r.link ?? undefined });
+const toMsg = (r: Row): ChatMessage => ({ id: r.id, role: r.role, content: r.content, at: r.created_at });
+
+/* ---------- sync ---------- */
+export async function syncAll() {
+  const { data: u } = await supabase.auth.getUser();
+  const user = u.user;
+  if (!user) {
+    set(() => ({ ...empty(), ready: true }));
+    return;
+  }
+  const [m, o, a, hs, he, al, msg, p] = await Promise.all([
+    supabase.from("missions").select("*").order("created_at", { ascending: false }),
+    supabase.from("opportunities").select("*").order("created_at", { ascending: false }),
+    supabase.from("approvals").select("*").order("created_at", { ascending: false }),
+    supabase.from("home_monitor_sessions").select("*").order("started_at", { ascending: false }).limit(50),
+    supabase.from("home_events").select("*").order("occurred_at", { ascending: false }).limit(500),
+    supabase.from("home_alerts").select("*").order("created_at", { ascending: false }).limit(200),
+    supabase.from("assistant_messages").select("*").order("created_at", { ascending: true }).limit(200),
+    supabase.from("user_preferences").select("*").eq("user_id", user.id).maybeSingle(),
+  ]);
+  let prefs = DEFAULT_PREFS;
+  if (p.data) {
+    const { user_id: _u, created_at: _c, updated_at: _d, ...rest } = p.data as Row;
+    prefs = { ...DEFAULT_PREFS, ...rest };
+  } else {
+    await supabase.from("user_preferences").insert({ user_id: user.id });
+  }
+  const keepDemo = <T extends { demo?: boolean | undefined }>(xs: T[]) => xs.filter((x) => x.demo);
+  set((s) => ({
+    ...s,
+    ready: true,
+    session: { email: user.email ?? "", userId: user.id },
+    missions: [...keepDemo(s.missions), ...(m.data ?? []).map(toMission)],
+    opportunities: [...keepDemo(s.opportunities), ...(o.data ?? []).map(toOpp)],
+    approvals: [...keepDemo(s.approvals), ...(a.data ?? []).map(toApproval)],
+    homeSessions: (hs.data ?? []).map((r) => ({ id: r.id, started_at: r.started_at, ended_at: r.ended_at ?? undefined, capture_enabled: r.capture_enabled })),
+    homeEvents: [...keepDemo(s.homeEvents), ...(he.data ?? []).map(toEvent)],
+    alerts: [...keepDemo(s.alerts), ...(al.data ?? []).map(toAlert)],
+    messages: (msg.data ?? []).map(toMsg),
+    prefs,
+  }));
+}
+
+export function resetState() {
+  set(() => ({ ...empty(), ready: true }));
+}
+
+/** Realtime: apply mission and alert changes pushed by the server. */
+export function subscribeRealtime(userId: string) {
+  const ch = supabase
+    .channel(`apex-${userId}`)
+    .on("postgres_changes", { event: "*", schema: "public", table: "missions", filter: `user_id=eq.${userId}` }, (pl) => {
+      if (pl.eventType === "DELETE") return set((s) => ({ ...s, missions: s.missions.filter((x) => x.id !== (pl.old as Row).id) }));
+      const m = toMission(pl.new as Row);
+      set((s) => ({ ...s, missions: s.missions.some((x) => x.id === m.id) ? s.missions.map((x) => (x.id === m.id ? m : x)) : [m, ...s.missions] }));
+    })
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "home_alerts", filter: `user_id=eq.${userId}` }, (pl) => {
+      const a = toAlert(pl.new as Row);
+      set((s) => (s.alerts.some((x) => x.id === a.id) ? s : { ...s, alerts: [a, ...s.alerts] }));
+    })
+    .subscribe();
+  return () => {
+    supabase.removeChannel(ch);
+  };
+}
+
+const sessionInserts = new Map<string, PromiseLike<unknown>>();
+let prefsTimer: ReturnType<typeof setTimeout> | null = null;
 
 export const actions = {
-  signIn(email: string) {
-    set((s) => ({ ...s, session: { email } }));
+  async signOut() {
+    await supabase.auth.signOut();
+    resetState();
   },
-  signOut() {
-    set((s) => ({ ...s, session: null }));
-  },
-  createMission(input: MissionInput): Mission {
-    const m: Mission = { ...input, id: uid(), status: "draft", progress: 0, created_at: now(), updated_at: now(), history: [{ at: now(), from: null, to: "draft" }] };
-    set((s) => ({ ...s, missions: [m, ...s.missions] }));
+  async createMission(input: MissionInput): Promise<Mission> {
+    const { data, error } = await supabase.from("missions").insert({ ...input, history: [{ at: now(), from: null, to: "draft" }] }).select().single();
+    if (error || !data) fail(error);
+    const m = toMission(data);
+    set((s) => ({ ...s, missions: [m, ...s.missions.filter((x) => x.id !== m.id)] }));
     return m;
   },
-  transition(id: string, action: MissionAction, note?: string) {
-    set((s) => ({
-      ...s,
-      missions: s.missions.map((m) => {
-        if (m.id !== id) return m;
-        const to = nextStatus(m.status, action);
-        return { ...m, status: to, progress: action === "retry" ? 0 : m.progress, updated_at: now(), history: [...m.history, { at: now(), from: m.status, to, note }] };
-      }),
-    }));
-  },
-  /** Simulated runner tick. Replaced by realtime updates from the mission runner. */
-  tick() {
-    const s = getState();
-    if (!s.missions.some((m) => m.status === "queued" || m.status === "running")) return;
-    set((st) => ({
-      ...st,
-      missions: st.missions.map((m) => {
-        if (m.status === "queued") return { ...m, status: "running", updated_at: now(), history: [...m.history, { at: now(), from: "queued", to: "running" }] };
-        if (m.status !== "running") return m;
-        const progress = Math.min(100, m.progress + 7);
-        if (progress >= 100) return { ...m, progress, status: "completed", updated_at: now(), history: [...m.history, { at: now(), from: "running", to: "completed", note: "Aucune recherche réelle : moteur non connecté." }] };
-        return { ...m, progress };
-      }),
-    }));
-  },
-  addOpportunities(list: Opportunity[]) {
-    set((s) => ({ ...s, opportunities: dedupe([...s.opportunities, ...list]) }));
-  },
-  decideApproval(id: string, decision: "approved" | "rejected", choice?: string) {
-    const a = getState().approvals.find((x) => x.id === id);
-    if (!a || a.status !== "pending") throw new Error("APPROVAL_NOT_PENDING");
-    if (new Date(a.expires_at) < new Date()) {
-      set((s) => ({ ...s, approvals: s.approvals.map((x) => (x.id === id ? { ...x, status: "expired" } : x)) }));
-      throw new Error("APPROVAL_EXPIRED");
+  async transition(id: string, action: MissionAction): Promise<void> {
+    if (id.startsWith("demo-")) {
+      toast("Mission de démonstration : non modifiable.");
+      return;
     }
-    set((s) => ({ ...s, approvals: s.approvals.map((x) => (x.id === id ? { ...x, status: decision, decided_at: now(), decision: choice } : x)) }));
+    const { data, error } = await supabase.rpc("mission_transition", { _mission_id: id, _action: action });
+    if (error || !data) fail(error);
+    const m = toMission(data as Row);
+    set((s) => ({ ...s, missions: s.missions.map((x) => (x.id === id ? m : x)) }));
+  },
+  async decideApproval(id: string, decision: "approved" | "rejected", choice?: string) {
+    if (id.startsWith("demo-")) {
+      set((s) => ({ ...s, approvals: s.approvals.map((x) => (x.id === id && x.status === "pending" ? { ...x, status: decision, decided_at: now() } : x)) }));
+      return;
+    }
+    const { data, error } = await supabase.rpc("approval_decide", { _approval_id: id, _decision: decision, ...(choice ? { _choice: choice } : {}) });
+    if (error || !data) {
+      await syncAll();
+      fail(error);
+    }
+    const a = toApproval(data as Row);
+    set((s) => ({ ...s, approvals: s.approvals.map((x) => (x.id === id ? a : x)) }));
   },
   startHomeSession(capture_enabled: boolean): HomeSession {
     const h: HomeSession = { id: uid(), started_at: now(), capture_enabled };
     set((s) => ({ ...s, homeSessions: [h, ...s.homeSessions] }));
+    sessionInserts.set(h.id, supabase.from("home_monitor_sessions").insert({ id: h.id, capture_enabled }).then(({ error }) => error && toast.error("Session non enregistrée.")));
     return h;
   },
   endHomeSession(id: string) {
-    set((s) => ({ ...s, homeSessions: s.homeSessions.map((h) => (h.id === id && !h.ended_at ? { ...h, ended_at: now() } : h)) }));
+    const ended_at = now();
+    set((s) => ({ ...s, homeSessions: s.homeSessions.map((h) => (h.id === id && !h.ended_at ? { ...h, ended_at } : h)) }));
+    Promise.resolve(sessionInserts.get(id)).then(() => supabase.from("home_monitor_sessions").update({ ended_at }).eq("id", id));
   },
-  addHomeEvent(session_id: string, confidence: number, capture_data?: string): HomeEvent {
-    const e: HomeEvent = { id: uid(), session_id, at: now(), confidence, capture_data };
-    const al: Alert = { id: uid(), at: e.at, kind: "home", title: "Mouvement détecté", body: `Confiance ${Math.round(confidence * 100)} %`, read: false, link: e.id };
-    set((s) => ({ ...s, homeEvents: [e, ...s.homeEvents], alerts: [al, ...s.alerts] }));
-    return e;
+  async addHomeEvent(session_id: string, confidence: number, jpegDataUrl?: string) {
+    const userId = state.session?.userId;
+    if (!userId) return;
+    await sessionInserts.get(session_id);
+    const id = uid();
+    let capture_path: string | undefined;
+    if (jpegDataUrl && state.prefs.capture_consent) {
+      const blob = await (await fetch(jpegDataUrl)).blob();
+      if (blob.size <= 500_000) {
+        const path = `${userId}/${session_id}/${id}.jpg`;
+        const { error } = await supabase.storage.from("home-captures").upload(path, blob, { contentType: "image/jpeg", upsert: false });
+        if (!error) capture_path = path;
+      }
+    }
+    const { data, error } = await supabase.from("home_events").insert({ id, session_id, confidence, capture_path: capture_path ?? null }).select().single();
+    if (error || !data) return fail(error);
+    set((s) => ({ ...s, homeEvents: [toEvent(data), ...s.homeEvents] }));
   },
-  deleteHomeEvent(id: string) {
-    // Event and capture are deleted together.
-    set((s) => ({ ...s, homeEvents: s.homeEvents.filter((e) => e.id !== id), alerts: s.alerts.filter((a) => a.link !== id) }));
+  async captureUrl(path: string): Promise<string | null> {
+    const { data } = await supabase.storage.from("home-captures").createSignedUrl(path, 60);
+    return data?.signedUrl ?? null;
+  },
+  async deleteHomeEvent(id: string) {
+    const e = state.homeEvents.find((x) => x.id === id);
+    if (e && !e.demo) {
+      if (e.capture_path) {
+        const { error } = await supabase.storage.from("home-captures").remove([e.capture_path]);
+        if (error) fail(error);
+      }
+      const { error } = await supabase.from("home_events").delete().eq("id", id);
+      if (error) fail(error);
+    }
+    set((s) => ({ ...s, homeEvents: s.homeEvents.filter((x) => x.id !== id), alerts: s.alerts.filter((a) => a.link !== id) }));
   },
   markAlert(id: string) {
     set((s) => ({ ...s, alerts: s.alerts.map((a) => (a.id === id ? { ...a, read: true } : a)) }));
+    if (!id.startsWith("demo-")) supabase.from("home_alerts").update({ read: true }).eq("id", id).then();
   },
   markAllAlerts() {
     set((s) => ({ ...s, alerts: s.alerts.map((a) => ({ ...a, read: true })) }));
+    supabase.from("home_alerts").update({ read: true }).eq("read", false).then();
   },
-  addMessage(m: Omit<ChatMessage, "id" | "at">) {
-    set((s) => ({ ...s, messages: [...s.messages, { ...m, id: uid(), at: now() }] }));
+  async sendMessage(content: string) {
+    const { data, error } = await supabase.from("assistant_messages").insert({ role: "user", content }).select().single();
+    if (error || !data) fail(error);
+    set((s) => ({ ...s, messages: [...s.messages, toMsg(data)] }));
   },
-  clearMessages() {
+  addLocalAssistantNote(content: string) {
+    set((s) => ({ ...s, messages: [...s.messages, { id: uid(), role: "assistant", content, at: now() }] }));
+  },
+  async clearMessages() {
+    const userId = state.session?.userId;
+    if (userId) await supabase.from("assistant_messages").delete().eq("user_id", userId);
     set((s) => ({ ...s, messages: [] }));
   },
   setPrefs(p: Partial<Preferences>) {
     set((s) => ({ ...s, prefs: { ...s.prefs, ...p } }));
+    const userId = state.session?.userId;
+    if (!userId) return;
+    if (prefsTimer) clearTimeout(prefsTimer);
+    prefsTimer = setTimeout(() => {
+      supabase.from("user_preferences").upsert({ user_id: userId, ...state.prefs }).then(({ error }) => error && toast.error("Réglages non enregistrés."));
+    }, 500);
   },
+  /** Demo data stays on this screen only; it is never written to the database. */
   loadDemo(data: Pick<ApexState, "missions" | "opportunities" | "approvals" | "alerts" | "homeEvents">) {
     set((s) => ({
       ...s,
@@ -180,8 +277,16 @@ export const actions = {
       homeEvents: [...data.homeEvents, ...s.homeEvents.filter((e) => !e.demo)],
     }));
   },
-  clearAll() {
-    const session = getState().session;
-    set(() => ({ ...empty(), session }));
+  async clearAll() {
+    const userId = state.session?.userId;
+    if (!userId) return;
+    const paths = state.homeEvents.map((e) => e.capture_path).filter((p): p is string => !!p);
+    if (paths.length) await supabase.storage.from("home-captures").remove(paths);
+    await Promise.all([
+      supabase.from("home_monitor_sessions").delete().eq("user_id", userId),
+      supabase.from("missions").delete().eq("user_id", userId),
+      supabase.from("assistant_messages").delete().eq("user_id", userId),
+    ]);
+    await syncAll();
   },
 };

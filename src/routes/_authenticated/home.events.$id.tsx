@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { SearchX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,12 @@ function EventDetail() {
   const { id } = Route.useParams();
   const e = useApex((s) => s.homeEvents.find((x) => x.id === id));
   const navigate = useNavigate();
+  const [url, setUrl] = useState<string | null>(null);
+  const path = e?.capture_path;
+  useEffect(() => {
+    setUrl(null);
+    if (path) actions.captureUrl(path).then(setUrl);
+  }, [path]);
   if (!e) return <EmptyState icon={SearchX} title="Événement introuvable" action={<Button asChild variant="outline"><Link to="/home/events">Retour</Link></Button>} />;
 
   return (
@@ -26,15 +33,15 @@ function EventDetail() {
           <div><dt className="eyebrow">Horodatage</dt><dd>{fmtDate(e.at)}</dd></div>
           <div><dt className="eyebrow">Confiance</dt><dd>{Math.round(e.confidence * 100)} %</dd></div>
         </dl>
-        {e.capture_data ? (
-          <img src={e.capture_data} alt="Capture de l'événement" className="w-full max-w-md rounded-md border" />
+        {url ? (
+          <img src={url} alt="Capture de l'événement" className="w-full max-w-md rounded-md border" />
         ) : (
           <p className="text-sm text-muted-foreground">Aucune capture (capture d'image désactivée).</p>
         )}
         <Button
           variant="destructive"
-          onClick={() => {
-            actions.deleteHomeEvent(e.id);
+          onClick={async () => {
+            await actions.deleteHomeEvent(e.id);
             toast("Événement et capture supprimés");
             navigate({ to: "/home/events" });
           }}

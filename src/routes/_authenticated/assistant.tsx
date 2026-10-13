@@ -16,19 +16,16 @@ function Assistant() {
   const ctx = { m: useApex((s) => s.missions.length), a: useApex((s) => s.approvals.filter((x) => x.status === "pending").length) };
   const [text, setText] = useState("");
 
-  const send = () => {
-    const t = text.trim();
+  const send = async () => {
+    const t = text.trim().slice(0, 4000);
     if (!t) return;
-    actions.addMessage({ role: "user", content: t });
     setText("");
-    setTimeout(
-      () =>
-        actions.addMessage({
-          role: "assistant",
-          content: `L'assistant IA n'est pas encore branché. Contexte connu : ${ctx.m} mission(s), ${ctx.a} action(s) requise(s).`,
-        }),
-      400,
-    );
+    try {
+      await actions.sendMessage(t);
+      actions.addLocalAssistantNote(`L'assistant IA n'est pas encore branché. Contexte connu : ${ctx.m} mission(s), ${ctx.a} action(s) requise(s).`);
+    } catch {
+      setText(t);
+    }
   };
 
   return (

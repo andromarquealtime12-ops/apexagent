@@ -23,7 +23,7 @@ function NewMission() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const total = weightsTotal(weights);
 
-  function submit(e: React.FormEvent<HTMLFormElement>, launch: boolean) {
+  async function submit(e: React.FormEvent<HTMLFormElement>, launch: boolean) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const r = missionInputSchema.safeParse({
@@ -45,8 +45,13 @@ function NewMission() {
       return;
     }
     setErrors({});
-    const m = actions.createMission(r.data);
-    if (launch) actions.transition(m.id, "launch");
+    let m;
+    try {
+      m = await actions.createMission(r.data);
+      if (launch) await actions.transition(m.id, "launch");
+    } catch {
+      return;
+    }
     toast.success(launch ? "Mission lancée" : "Brouillon enregistré");
     navigate({ to: "/business/missions/$id", params: { id: m.id } });
   }

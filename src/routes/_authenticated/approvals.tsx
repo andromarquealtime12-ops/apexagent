@@ -17,12 +17,12 @@ function Approvals() {
   const [tab, setTab] = useState<"pending" | "done">("pending");
   const list = all.filter((a) => (tab === "pending" ? a.status === "pending" : a.status !== "pending"));
 
-  const decide = (id: string, d: "approved" | "rejected") => {
+  const decide = async (id: string, d: "approved" | "rejected") => {
     try {
-      actions.decideApproval(id, d);
+      await actions.decideApproval(id, d);
       toast.success(d === "approved" ? "Autorisation accordée (usage unique)" : "Refusée — rien ne sera exécuté");
-    } catch (e) {
-      toast.error(e instanceof Error && e.message === "APPROVAL_EXPIRED" ? "Cette autorisation a expiré." : "Décision déjà prise.");
+    } catch {
+      /* error already shown */
     }
   };
 

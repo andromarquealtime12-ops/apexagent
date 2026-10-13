@@ -26,7 +26,7 @@ function Events() {
                   <span className="block text-sm font-medium">Mouvement — {Math.round(e.confidence * 100)} %</span>
                   <span className="text-xs text-muted-foreground">{fmtDate(e.at)}</span>
                 </span>
-                {e.capture_data && <Image className="size-4 text-muted-foreground" aria-label="Capture disponible" />}
+                {e.capture_path && <Image className="size-4 text-muted-foreground" aria-label="Capture disponible" />}
                 <DemoTag show={e.demo} />
                 <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
               </Link>
