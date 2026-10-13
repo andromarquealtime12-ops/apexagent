@@ -10,6 +10,6 @@
 <!-- LOVABLE:END -->
 
 ## APEX
-- All app data goes through `src/lib/apex/store.ts` actions; it is a local stand-in to be swapped for server functions + RLS tables once the database is connected, so UI code never talks to storage directly.
+- All app data goes through `src/lib/apex/store.ts` (in-memory state synced with RLS tables; sensitive transitions via SECURITY DEFINER RPCs), so UI code never talks to the database directly.
 - Domain rules (scoring, dedupe, mission transitions) live as pure functions in `src/lib/apex/` with tests in `src/test/apex.test.ts`, so server code can reuse them.
 - Camera starts only from an explicit user click in `useMotionMonitor`; never auto-start, never request audio.

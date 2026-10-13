@@ -169,7 +169,10 @@ export const actions = {
     return m;
   },
   async transition(id: string, action: MissionAction) {
-    if (id.startsWith("demo-")) return toast("Mission de démonstration : non modifiable.");
+    if (id.startsWith("demo-")) {
+      toast("Mission de démonstration : non modifiable.");
+      return;
+    }
     const { data, error } = await supabase.rpc("mission_transition", { _mission_id: id, _action: action });
     if (error || !data) fail(error);
     const m = toMission(data as Row);
