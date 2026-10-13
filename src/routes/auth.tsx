@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { syncAll } from "@/lib/apex/store";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
+  validateSearch: (s: Record<string, unknown>): { next?: string | undefined } => ({ next: typeof s["next"] === "string" ? oauthReturnPath(s["next"]) : undefined }),
   head: () => ({
     meta: [
       { title: "Connexion — APEX" },
@@ -35,6 +37,8 @@ const MESSAGES: Record<string, string> = {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const next = Route.useSearch().next ?? "/";
+  const go = () => (next !== "/" ? window.location.assign(next) : navigate({ to: "/", replace: true }));
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [err, setErr] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -42,9 +46,9 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/", replace: true });
+      if (data.user) go();
     });
-  }, [navigate]);
+  }, [navigate, next]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -60,13 +64,13 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword(r.data);
         if (error) throw error;
         await syncAll();
-        navigate({ to: "/", replace: true });
+        go();
       } else {
-        const { data, error } = await supabase.auth.signUp({ ...r.data, options: { emailRedirectTo: window.location.origin } });
+        const { data, error } = await supabase.auth.signUp({ ...r.data, options: { emailRedirectTo: new URL(next, window.location.origin).href } });
         if (error) throw error;
         if (data.session) {
           await syncAll();
-          navigate({ to: "/", replace: true });
+          go();
         } else {
           setInfo("Compte créé. Ouvrez le courriel de confirmation, puis connectez-vous.");
           setMode("signin");
