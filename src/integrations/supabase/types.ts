@@ -437,6 +437,48 @@ export type Database = {
         }
         Relationships: []
       }
+      devices: {
+        Row: {
+          accuracy_m: number | null
+          created_at: string
+          id: string
+          last_seen_at: string
+          latitude: number | null
+          location_at: string | null
+          longitude: number | null
+          name: string
+          platform: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accuracy_m?: number | null
+          created_at?: string
+          id: string
+          last_seen_at?: string
+          latitude?: number | null
+          location_at?: string | null
+          longitude?: number | null
+          name?: string
+          platform?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          accuracy_m?: number | null
+          created_at?: string
+          id?: string
+          last_seen_at?: string
+          latitude?: number | null
+          location_at?: string | null
+          longitude?: number | null
+          name?: string
+          platform?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       home_alerts: {
         Row: {
           body: string
