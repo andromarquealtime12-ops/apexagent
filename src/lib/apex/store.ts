@@ -168,7 +168,7 @@ export const actions = {
     set((s) => ({ ...s, missions: [m, ...s.missions.filter((x) => x.id !== m.id)] }));
     return m;
   },
-  async transition(id: string, action: MissionAction) {
+  async transition(id: string, action: MissionAction): Promise<void> {
     if (id.startsWith("demo-")) {
       toast("Mission de démonstration : non modifiable.");
       return;
