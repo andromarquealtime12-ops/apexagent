@@ -15,7 +15,9 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAlertsRouteImport } from './routes/_authenticated/alerts'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedAssistantRouteImport } from './routes/_authenticated/assistant'
+import { Route as AuthenticatedDevicesRouteImport } from './routes/_authenticated/devices'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedBusinessAssistantRouteImport } from './routes/_authenticated/business.assistant'
 import { Route as AuthenticatedBusinessCompareRouteImport } from './routes/_authenticated/business.compare'
 import { Route as AuthenticatedBusinessHistoryRouteImport } from './routes/_authenticated/business.history'
 import { Route as AuthenticatedHomeIndexRouteImport } from './routes/_authenticated/home.index'
@@ -54,11 +56,22 @@ const AuthenticatedAssistantRoute = AuthenticatedAssistantRouteImport.update({
   path: '/assistant',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDevicesRoute = AuthenticatedDevicesRouteImport.update({
+  id: '/devices',
+  path: '/devices',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBusinessAssistantRoute =
+  AuthenticatedBusinessAssistantRouteImport.update({
+    id: '/business/assistant',
+    path: '/business/assistant',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBusinessCompareRoute =
   AuthenticatedBusinessCompareRouteImport.update({
     id: '/business/compare',
@@ -113,7 +126,9 @@ export interface FileRoutesByFullPath {
   '/alerts': typeof AuthenticatedAlertsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/assistant': typeof AuthenticatedAssistantRoute
+  '/devices': typeof AuthenticatedDevicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/business/assistant': typeof AuthenticatedBusinessAssistantRoute
   '/business/compare': typeof AuthenticatedBusinessCompareRoute
   '/business/history': typeof AuthenticatedBusinessHistoryRoute
   '/home/': typeof AuthenticatedHomeIndexRoute
@@ -128,8 +143,10 @@ export interface FileRoutesByTo {
   '/alerts': typeof AuthenticatedAlertsRoute
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/assistant': typeof AuthenticatedAssistantRoute
+  '/devices': typeof AuthenticatedDevicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/': typeof AuthenticatedIndexRoute
+  '/business/assistant': typeof AuthenticatedBusinessAssistantRoute
   '/business/compare': typeof AuthenticatedBusinessCompareRoute
   '/business/history': typeof AuthenticatedBusinessHistoryRoute
   '/home': typeof AuthenticatedHomeIndexRoute
@@ -146,8 +163,10 @@ export interface FileRoutesById {
   '/_authenticated/alerts': typeof AuthenticatedAlertsRoute
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/assistant': typeof AuthenticatedAssistantRoute
+  '/_authenticated/devices': typeof AuthenticatedDevicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/business/assistant': typeof AuthenticatedBusinessAssistantRoute
   '/_authenticated/business/compare': typeof AuthenticatedBusinessCompareRoute
   '/_authenticated/business/history': typeof AuthenticatedBusinessHistoryRoute
   '/_authenticated/home/': typeof AuthenticatedHomeIndexRoute
@@ -165,7 +184,9 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/approvals'
     | '/assistant'
+    | '/devices'
     | '/settings'
+    | '/business/assistant'
     | '/business/compare'
     | '/business/history'
     | '/home/'
@@ -180,8 +201,10 @@ export interface FileRouteTypes {
     | '/alerts'
     | '/approvals'
     | '/assistant'
+    | '/devices'
     | '/settings'
     | '/'
+    | '/business/assistant'
     | '/business/compare'
     | '/business/history'
     | '/home'
@@ -197,8 +220,10 @@ export interface FileRouteTypes {
     | '/_authenticated/alerts'
     | '/_authenticated/approvals'
     | '/_authenticated/assistant'
+    | '/_authenticated/devices'
     | '/_authenticated/settings'
     | '/_authenticated/'
+    | '/_authenticated/business/assistant'
     | '/_authenticated/business/compare'
     | '/_authenticated/business/history'
     | '/_authenticated/home/'
@@ -258,11 +283,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAssistantRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/devices': {
+      id: '/_authenticated/devices'
+      path: '/devices'
+      fullPath: '/devices'
+      preLoaderRoute: typeof AuthenticatedDevicesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/business/assistant': {
+      id: '/_authenticated/business/assistant'
+      path: '/business/assistant'
+      fullPath: '/business/assistant'
+      preLoaderRoute: typeof AuthenticatedBusinessAssistantRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/business/compare': {
@@ -328,8 +367,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAlertsRoute: typeof AuthenticatedAlertsRoute
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedAssistantRoute: typeof AuthenticatedAssistantRoute
+  AuthenticatedDevicesRoute: typeof AuthenticatedDevicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedBusinessAssistantRoute: typeof AuthenticatedBusinessAssistantRoute
   AuthenticatedBusinessCompareRoute: typeof AuthenticatedBusinessCompareRoute
   AuthenticatedBusinessHistoryRoute: typeof AuthenticatedBusinessHistoryRoute
   AuthenticatedHomeIndexRoute: typeof AuthenticatedHomeIndexRoute
@@ -344,8 +385,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAlertsRoute: AuthenticatedAlertsRoute,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedAssistantRoute: AuthenticatedAssistantRoute,
+  AuthenticatedDevicesRoute: AuthenticatedDevicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedBusinessAssistantRoute: AuthenticatedBusinessAssistantRoute,
   AuthenticatedBusinessCompareRoute: AuthenticatedBusinessCompareRoute,
   AuthenticatedBusinessHistoryRoute: AuthenticatedBusinessHistoryRoute,
   AuthenticatedHomeIndexRoute: AuthenticatedHomeIndexRoute,

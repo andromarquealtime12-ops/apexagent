@@ -13,3 +13,5 @@
 - All app data goes through `src/lib/apex/store.ts` (in-memory state synced with RLS tables; sensitive transitions via SECURITY DEFINER RPCs), so UI code never talks to the database directly.
 - Domain rules (scoring, dedupe, mission transitions) live as pure functions in `src/lib/apex/` with tests in `src/test/apex.test.ts`, so server code can reuse them.
 - Camera starts only from an explicit user click in `useMotionMonitor`; never auto-start, never request audio.
+- The APEX agent's tools and prompt live in `src/lib/apex-agent.server.ts` and run through a Supabase client authenticated as the user (RLS applies); both the text chat (`agent.functions.ts`) and the voice relay (`live-relay.server.ts`, which verifies the token sent in `app.start`) reuse them, so behaviour stays identical across text and voice.
+- Device location is opt-in per device and only reported while the app is open (`use-device-presence.ts`); no background or remote camera/microphone access.

@@ -18,7 +18,19 @@ export interface ApexState {
   homeEvents: HomeEvent[];
   alerts: Alert[];
   messages: ChatMessage[];
+  devices: Device[];
   prefs: Preferences;
+}
+
+export interface Device {
+  id: string;
+  name: string;
+  platform: string;
+  latitude: number | null;
+  longitude: number | null;
+  accuracy_m: number | null;
+  location_at: string | null;
+  last_seen_at: string;
 }
 
 export const DEFAULT_PREFS: Preferences = {
@@ -41,6 +53,7 @@ const empty = (): ApexState => ({
   homeEvents: [],
   alerts: [],
   messages: [],
+  devices: [],
   prefs: { ...DEFAULT_PREFS },
 });
 
@@ -97,7 +110,7 @@ export async function syncAll() {
     set(() => ({ ...empty(), ready: true }));
     return;
   }
-  const [m, o, a, hs, he, al, msg, p] = await Promise.all([
+  const [m, o, a, hs, he, al, msg, p, dv] = await Promise.all([
     supabase.from("missions").select("*").order("created_at", { ascending: false }),
     supabase.from("opportunities").select("*").order("created_at", { ascending: false }),
     supabase.from("approvals").select("*").order("created_at", { ascending: false }),
@@ -106,6 +119,7 @@ export async function syncAll() {
     supabase.from("home_alerts").select("*").order("created_at", { ascending: false }).limit(200),
     supabase.from("assistant_messages").select("*").order("created_at", { ascending: true }).limit(200),
     supabase.from("user_preferences").select("*").eq("user_id", user.id).maybeSingle(),
+    supabase.from("devices").select("*").order("last_seen_at", { ascending: false }),
   ]);
   let prefs = DEFAULT_PREFS;
   if (p.data) {
@@ -126,6 +140,7 @@ export async function syncAll() {
     homeEvents: [...keepDemo(s.homeEvents), ...(he.data ?? []).map(toEvent)],
     alerts: [...keepDemo(s.alerts), ...(al.data ?? []).map(toAlert)],
     messages: (msg.data ?? []).map(toMsg),
+    devices: (dv.data ?? []) as Device[],
     prefs,
   }));
 }
@@ -142,6 +157,11 @@ export function subscribeRealtime(userId: string) {
       if (pl.eventType === "DELETE") return set((s) => ({ ...s, missions: s.missions.filter((x) => x.id !== (pl.old as Row).id) }));
       const m = toMission(pl.new as Row);
       set((s) => ({ ...s, missions: s.missions.some((x) => x.id === m.id) ? s.missions.map((x) => (x.id === m.id ? m : x)) : [m, ...s.missions] }));
+    })
+    .on("postgres_changes", { event: "*", schema: "public", table: "devices", filter: `user_id=eq.${userId}` }, (pl) => {
+      if (pl.eventType === "DELETE") return set((s) => ({ ...s, devices: s.devices.filter((x) => x.id !== (pl.old as Row).id) }));
+      const d = pl.new as Device;
+      set((s) => ({ ...s, devices: [d, ...s.devices.filter((x) => x.id !== d.id)] }));
     })
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "home_alerts", filter: `user_id=eq.${userId}` }, (pl) => {
       const a = toAlert(pl.new as Row);
@@ -248,6 +268,26 @@ export const actions = {
     const { data, error } = await supabase.from("assistant_messages").insert({ role: "user", content }).select().single();
     if (error || !data) fail(error);
     set((s) => ({ ...s, messages: [...s.messages, toMsg(data)] }));
+  },
+  appendMessages(rows: Row[]) {
+    set((s) => ({ ...s, messages: [...s.messages, ...rows.map(toMsg).filter((m) => !s.messages.some((x) => x.id === m.id))] }));
+  },
+  async reportDevice(d: { id: string; name: string; platform: string; latitude?: number; longitude?: number; accuracy_m?: number }) {
+    const row = {
+      id: d.id,
+      name: d.name.slice(0, 60),
+      platform: d.platform.slice(0, 120),
+      last_seen_at: now(),
+      ...(d.latitude != null ? { latitude: d.latitude, longitude: d.longitude ?? null, accuracy_m: d.accuracy_m ?? null, location_at: now() } : {}),
+    };
+    const { data, error } = await supabase.from("devices").upsert(row).select().single();
+    if (error || !data) return;
+    set((s) => ({ ...s, devices: [data as Device, ...s.devices.filter((x) => x.id !== d.id)] }));
+  },
+  async removeDevice(id: string) {
+    const { error } = await supabase.from("devices").delete().eq("id", id);
+    if (error) fail(error);
+    set((s) => ({ ...s, devices: s.devices.filter((x) => x.id !== id) }));
   },
   addLocalAssistantNote(content: string) {
     set((s) => ({ ...s, messages: [...s.messages, { id: uid(), role: "assistant", content, at: now() }] }));
