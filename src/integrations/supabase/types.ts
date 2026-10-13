@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          created_at: string
+          detail: Json
+          id: string
+          kind: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json
+          id?: string
+          kind?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       apex_exports: {
         Row: {
           created_at: string
@@ -323,12 +350,437 @@ export type Database = {
           },
         ]
       }
+      approvals: {
+        Row: {
+          action: string
+          choices: Json
+          cost: string | null
+          created_at: string
+          data: string
+          decided_at: string | null
+          decision: string | null
+          evidence: Json
+          expires_at: string
+          id: string
+          impact: string
+          next_step: string
+          recommendation: string
+          status: string
+          target: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          choices?: Json
+          cost?: string | null
+          created_at?: string
+          data?: string
+          decided_at?: string | null
+          decision?: string | null
+          evidence?: Json
+          expires_at: string
+          id?: string
+          impact: string
+          next_step?: string
+          recommendation?: string
+          status?: string
+          target: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          choices?: Json
+          cost?: string | null
+          created_at?: string
+          data?: string
+          decided_at?: string | null
+          decision?: string | null
+          evidence?: Json
+          expires_at?: string
+          id?: string
+          impact?: string
+          next_step?: string
+          recommendation?: string
+          status?: string
+          target?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      assistant_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      home_alerts: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          link: string | null
+          read: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          link?: string | null
+          read?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      home_events: {
+        Row: {
+          capture_path: string | null
+          confidence: number
+          created_at: string
+          id: string
+          occurred_at: string
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capture_path?: string | null
+          confidence: number
+          created_at?: string
+          id?: string
+          occurred_at?: string
+          session_id: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          capture_path?: string | null
+          confidence?: number
+          created_at?: string
+          id?: string
+          occurred_at?: string
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "home_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "home_monitor_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      home_monitor_sessions: {
+        Row: {
+          capture_enabled: boolean
+          created_at: string
+          ended_at: string | null
+          id: string
+          started_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capture_enabled?: boolean
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          capture_enabled?: boolean
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      missions: {
+        Row: {
+          budget_max: number
+          budget_min: number
+          created_at: string
+          currency: string
+          history: Json
+          horizon: string
+          id: string
+          progress: number
+          region: string
+          skills: string[]
+          status: string
+          success_criteria: string
+          theme: string
+          title: string
+          updated_at: string
+          user_id: string
+          weights: Json
+        }
+        Insert: {
+          budget_max?: number
+          budget_min?: number
+          created_at?: string
+          currency?: string
+          history?: Json
+          horizon?: string
+          id?: string
+          progress?: number
+          region: string
+          skills?: string[]
+          status?: string
+          success_criteria?: string
+          theme: string
+          title: string
+          updated_at?: string
+          user_id?: string
+          weights: Json
+        }
+        Update: {
+          budget_max?: number
+          budget_min?: number
+          created_at?: string
+          currency?: string
+          history?: Json
+          horizon?: string
+          id?: string
+          progress?: number
+          region?: string
+          skills?: string[]
+          status?: string
+          success_criteria?: string
+          theme?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          weights?: Json
+        }
+        Relationships: []
+      }
+      opportunities: {
+        Row: {
+          canonical_key: string
+          confidence: number
+          created_at: string
+          criteria: Json
+          facts: Json
+          hypotheses: Json
+          id: string
+          inferences: Json
+          missing_data: Json
+          mission_id: string
+          next_experiment: string
+          projections: Json
+          risks: Json
+          sources: Json
+          stable_id: string | null
+          summary: string
+          title: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          canonical_key: string
+          confidence?: number
+          created_at?: string
+          criteria?: Json
+          facts?: Json
+          hypotheses?: Json
+          id?: string
+          inferences?: Json
+          missing_data?: Json
+          mission_id: string
+          next_experiment?: string
+          projections?: Json
+          risks?: Json
+          sources?: Json
+          stable_id?: string | null
+          summary?: string
+          title: string
+          updated_at?: string
+          url?: string
+          user_id: string
+        }
+        Update: {
+          canonical_key?: string
+          confidence?: number
+          created_at?: string
+          criteria?: Json
+          facts?: Json
+          hypotheses?: Json
+          id?: string
+          inferences?: Json
+          missing_data?: Json
+          mission_id?: string
+          next_experiment?: string
+          projections?: Json
+          risks?: Json
+          sources?: Json
+          stable_id?: string | null
+          summary?: string
+          title?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunities_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          capture_consent: boolean
+          cooldown_s: number
+          created_at: string
+          display_name: string
+          notifications_internal: boolean
+          notifications_push: boolean
+          retention_days: number
+          sensitivity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capture_consent?: boolean
+          cooldown_s?: number
+          created_at?: string
+          display_name?: string
+          notifications_internal?: boolean
+          notifications_push?: boolean
+          retention_days?: number
+          sensitivity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capture_consent?: boolean
+          cooldown_s?: number
+          created_at?: string
+          display_name?: string
+          notifications_internal?: boolean
+          notifications_push?: boolean
+          retention_days?: number
+          sensitivity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      approval_decide: {
+        Args: { _approval_id: string; _choice?: string; _decision: string }
+        Returns: {
+          action: string
+          choices: Json
+          cost: string | null
+          created_at: string
+          data: string
+          decided_at: string | null
+          decision: string | null
+          evidence: Json
+          expires_at: string
+          id: string
+          impact: string
+          next_step: string
+          recommendation: string
+          status: string
+          target: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "approvals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      mission_transition: {
+        Args: { _action: string; _mission_id: string }
+        Returns: {
+          budget_max: number
+          budget_min: number
+          created_at: string
+          currency: string
+          history: Json
+          horizon: string
+          id: string
+          progress: number
+          region: string
+          skills: string[]
+          status: string
+          success_criteria: string
+          theme: string
+          title: string
+          updated_at: string
+          user_id: string
+          weights: Json
+        }
+        SetofOptions: {
+          from: "*"
+          to: "missions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
