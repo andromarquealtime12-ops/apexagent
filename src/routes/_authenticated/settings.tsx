@@ -60,11 +60,11 @@ function SettingsPage() {
               {[7, 30, 90].map((d) => <option key={d} value={d}>{d} jours</option>)}
             </select>
           </div>
-          <Button variant="destructive" onClick={() => { if (confirm("Supprimer toutes les données de cet appareil ?")) { actions.clearAll(); toast("Données supprimées"); } }}>
+          <Button variant="destructive" onClick={async () => { if (confirm("Supprimer toutes vos données APEX ?")) { await actions.clearAll(); toast("Données supprimées"); } }}>
             <Trash2 />Supprimer toutes mes données
           </Button>
         </Panel>
-        <Button variant="outline" className="w-full md:hidden" onClick={() => { actions.signOut(); navigate({ to: "/auth", replace: true }); }}>
+        <Button variant="outline" className="w-full md:hidden" onClick={async () => { await actions.signOut(); navigate({ to: "/auth", replace: true }); }}>
           <LogOut />Déconnexion
         </Button>
       </div>

@@ -38,10 +38,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const online = useOnline();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const t = setInterval(() => actions.tick(), 1500);
-    return () => clearInterval(t);
-  }, []);
 
   const badge = (to: string) => (to === "/alerts" ? unread : to === "/approvals" ? pending : 0);
 
@@ -69,8 +65,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="border-t border-sidebar-border pt-3">
           <p className="truncate px-2 text-xs text-sidebar-foreground/60">{email}</p>
           <button
-            onClick={() => {
-              actions.signOut();
+            onClick={async () => {
+              await actions.signOut();
               navigate({ to: "/auth", replace: true });
             }}
             className="tap mt-1 flex w-full items-center gap-3 rounded-md px-3 text-sm hover:bg-sidebar-accent"

@@ -34,7 +34,7 @@ function MissionDetail() {
         <Progress value={m.progress} aria-label="Progression de la mission" />
         <div className="mt-4 flex flex-wrap gap-2">
           {availableActions(m.status).map((a) => (
-            <Button key={a} variant={a === "cancel" ? "outline" : "default"} onClick={() => { actions.transition(m.id, a); toast(ACTION_LABELS[a]); }}>
+            <Button key={a} variant={a === "cancel" ? "outline" : "default"} onClick={() => actions.transition(m.id, a).then(() => toast(ACTION_LABELS[a])).catch(() => {})}>
               {ACTION_LABELS[a]}
             </Button>
           ))}

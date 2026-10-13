@@ -35,7 +35,7 @@ function HomeMonitor() {
     onMotion: (conf, snap) => {
       if (!sessionRef.current) return;
       const img = prefs.capture_consent ? snap?.() : undefined;
-      actions.addHomeEvent(sessionRef.current, conf, img);
+      actions.addHomeEvent(sessionRef.current, conf, img).catch(() => {});
       toast("Mouvement détecté", { description: `Confiance ${Math.round(conf * 100)} %` });
     },
   });
