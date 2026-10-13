@@ -80,7 +80,8 @@ function fail(e: unknown): never {
 }
 
 /* ---------- row mappers ---------- */
-type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Row = any;
 const toMission = (r: Row): Mission => ({ ...r, budget_min: Number(r.budget_min), budget_max: Number(r.budget_max), history: r.history ?? [] }) as Mission;
 const toOpp = (r: Row): Opportunity => ({ ...r, confidence: Number(r.confidence) }) as Opportunity;
 const toApproval = (r: Row): Approval => ({ ...r, cost: r.cost ?? undefined, decision: r.decision ?? undefined, decided_at: r.decided_at ?? undefined }) as Approval;
