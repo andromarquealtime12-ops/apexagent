@@ -12,7 +12,13 @@ export type LiveConfig = {
 };
 
 // Fill from co-loaded knowledge: the gateway URL, the Live model and the resolved chat model.
-const liveSettings = { baseURL: "https://ai.gateway.lovable.dev", liveModel: "openai/gpt-live-1", backendModel: "openai/gpt-6-astra" };
+const liveSettings = {
+  baseURL: "https://ai.gateway.lovable.dev",
+  liveModel: "openai/gpt-live-1",
+  backendModel: "openai/gpt-6-astra",
+  openingInstructions:
+    "Commence maintenant en français. Salue brièvement l'utilisateur en tant qu'agent APEX Business, puis demande quelle mission il veut que tu prépares, et écoute.",
+};
 
 export type LiveSocket = {
   readonly readyState: number;

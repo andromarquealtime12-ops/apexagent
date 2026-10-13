@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type LiveEvent = {
@@ -351,7 +352,8 @@ function createLiveVoice(options: LiveOptions) {
       deadline = setTimeout(() => fail("Voice session did not start"), 50_000);
       socket.onopen = () => {
         if (!starting()) return release();
-        send({ type: "app.start", sdp });
+        const { data: auth } = await supabase.auth.getSession();
+        send({ type: "app.start", sdp, token: auth.session?.access_token ?? "" });
       };
       socket.onmessage = ({ data }) => {
         try {
