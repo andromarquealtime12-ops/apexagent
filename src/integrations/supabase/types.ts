@@ -795,6 +795,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      mcp_audit: { Args: { _detail: Json; _kind: string }; Returns: undefined }
       mission_transition: {
         Args: { _action: string; _mission_id: string }
         Returns: {
