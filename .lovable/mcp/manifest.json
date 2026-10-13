@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "sdk_version": "3.0.5",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://jughyxxtkiuamnudcqkq.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "apexagent",
+      "version": "0.1.0",
+      "title": "Apexagent"
+    },
+    "tools": [
+      {
+        "name": "list_missions",
+        "title": "Lister les missions",
+        "description": "Liste les missions APEX de l'utilisateur connecté, les plus récentes d'abord.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Filtrer par statut.",
+              "type": "string",
+              "enum": [
+                "draft",
+                "queued",
+                "running",
+                "paused",
+                "completed",
+                "failed",
+                "cancelled"
+              ]
+            },
+            "limit": {
+              "default": 20,
+              "description": "Nombre maximum (1-50).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_mission",
+        "title": "Détail d'une mission",
+        "description": "Retourne le détail d'une mission APEX appartenant à l'utilisateur connecté.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "mission_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "Identifiant (UUID) de la mission."
+            }
+          },
+          "required": [
+            "mission_id"
+          ],
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_mission",
+        "title": "Créer une mission (brouillon)",
+        "description": "Crée une mission APEX en brouillon pour l'utilisateur connecté. Présente d'abord le résumé à l'utilisateur et n'appelle avec confirmed=true qu'après son accord explicite.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 120
+            },
+            "theme": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80
+            },
+            "region": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80
+            },
+            "budget_min": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "budget_max": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1000000000
+            },
+            "currency": {
+              "type": "string",
+              "enum": [
+                "EUR",
+                "USD",
+                "CAD",
+                "CHF",
+                "GBP"
+              ]
+            },
+            "horizon": {
+              "type": "string",
+              "enum": [
+                "1 mois",
+                "3 mois",
+                "6 mois",
+                "12 mois"
+              ]
+            },
+            "skills": {
+              "default": [],
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 60
+              }
+            },
+            "success_criteria": {
+              "default": "",
+              "type": "string",
+              "maxLength": 1000
+            },
+            "confirmed": {
+              "type": "boolean",
+              "description": "true uniquement après confirmation explicite de l'utilisateur sur ce résumé exact."
+            }
+          },
+          "required": [
+            "title",
+            "theme",
+            "region",
+            "budget_min",
+            "budget_max",
+            "currency",
+            "horizon",
+            "confirmed"
+          ],
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
